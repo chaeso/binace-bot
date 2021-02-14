@@ -8,6 +8,49 @@ from datetime import datetime
 import talib
 import numpy as np
 
+
+def printDataAsGraph(df: pandas.DataFrame):
+    import matplotlib.pyplot as plt
+    import matplotlib.gridspec as gridspec
+    fig = plt.figure(figsize=(8, 5))
+    fig.set_facecolor('w')
+    gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1])
+    axes = []
+    axes.append(plt.subplot(gs[0]))
+    axes.append(plt.subplot(gs[1], sharex=axes[0]))
+    axes[0].get_xaxis().set_visible(False)
+    from mpl_finance import candlestick_ohlc
+
+    x = np.arange(len(df.index))
+    ohlc = df[['open', 'high', 'low', 'close']].astype(int).values
+    dohlc = np.hstack((np.reshape(x, (-1, 1)), ohlc))
+
+    # 봉차트
+    candlestick_ohlc(axes[0], dohlc, width=0.5, colorup='r', colordown='b')
+
+    # 이동평균선 그리기
+    # axes[0].plot(index, kospi_df['MA3'], label='MA3', linewidth=0.7)
+    # axes[0].plot(index, kospi_df['MA5'], label='MA5', linewidth=0.7)
+    axes[0].plot(x, df['ema12'], label='ema12', linewidth=0.7)
+    axes[0].plot(x, df['ema26'], label='ema26', linewidth=0.7)
+
+    # 거래량 차트
+    print(df['volume'])
+    axes[1].bar(x, df['volume'], color='k', width=0.6, align='center')
+    import datetime
+    _xticks = []
+    _xlabels = []
+    _wd_prev = 0
+    for _x, d in zip(x, df.openTime.values):
+        weekday = pandas.to_datetime(d).weekday()
+        if weekday <= _wd_prev:
+            _xticks.append(_x)
+            _xlabels.append(pandas.to_datetime(d).strftime('%m/%d'))
+        _wd_prev = weekday
+    axes[1].set_xticks(_xticks)
+    axes[1].set_xticklabels(_xlabels, rotation=45, minor=False)
+    plt.tight_layout()
+    plt.show()
 def printCandle():
     request_client = RequestClient(api_key=g_api_key, secret_key=g_secret_key)
 
@@ -23,6 +66,9 @@ def printCandle():
     df['openTime'] = [datetime.fromtimestamp(x//1000.0) for x in df['openTime']]
     df['closeTime'] = [datetime.fromtimestamp(x // 1000.0) for x in df['closeTime']]
     df['close'] = df['close'].astype(float)
+    df['open'] = df['open'].astype(float)
+    df['high'] = df['high'].astype(float)
+    df['low'] = df['low'].astype(float)
     print(df)
 
     close = np.array(df['close'])
@@ -40,6 +86,8 @@ def printCandle():
     df['macd'] = macd
     print(df)
     df.to_excel("output.xlsx")
+
+    printDataAsGraph(df.tail(30))
 
 
 if __name__ == '__main__':
