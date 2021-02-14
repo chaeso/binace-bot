@@ -91,7 +91,7 @@ class SubscriptionClient(object):
         """
         Kline/Candlestick Streams
 
-        The Kline/Candlestick Stream push updates to the current klines/candlestick every 250 milliseconds (if existing).
+        The Kline/Candlestick Stream push updates to the current klines/candlestick.py every 250 milliseconds (if existing).
 
         Stream Name: <symbol>@kline_<interval>
         """

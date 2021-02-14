@@ -102,7 +102,7 @@ class SubscriptionClient(object):
         """
         Continuous Kline/Candlestick Streams
 
-        The continuous Kline/Candlestick Stream push updates to the current klines/candlestick every 250 milliseconds (if existing).
+        The continuous Kline/Candlestick Stream push updates to the current klines/candlestick.py every 250 milliseconds (if existing).
 
         Stream Name: <pair><contractType>@continuousKline_<interval>
         """
@@ -114,7 +114,7 @@ class SubscriptionClient(object):
         """
         Kline/Candlestick Streams
 
-        The Kline/Candlestick Stream push updates to the current klines/candlestick every 250 milliseconds (if existing).
+        The Kline/Candlestick Stream push updates to the current klines/candlestick.py every 250 milliseconds (if existing).
 
         Stream Name: <symbol>@kline_<interval>
         """
@@ -126,7 +126,7 @@ class SubscriptionClient(object):
         """
         Mark price Kline/Candlestick Streams
 
-        The mark price Kline/Candlestick Stream push updates to the current mark price klines/candlestick every 250 milliseconds (if existing).
+        The mark price Kline/Candlestick Stream push updates to the current mark price klines/candlestick.py every 250 milliseconds (if existing).
 
         Stream Name: <symbol>@markPriceKline_<interval>
         """
@@ -138,7 +138,7 @@ class SubscriptionClient(object):
         """
         Index Kline/Candlestick Streams
 
-        The index Kline/Candlestick Stream push updates to the current index klines/candlestick every 250 milliseconds (if existing).
+        The index Kline/Candlestick Stream push updates to the current index klines/candlestick.py every 250 milliseconds (if existing).
 
         Stream Name: <pair>@indexPriceKline_<interval>
         """

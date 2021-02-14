@@ -114,7 +114,7 @@ class RequestClient(object):
 
         GET /dapi/v1/continuousKlines
 
-        Continuous Kline/candlestick bars for a pair. Klines are uniquely identified by their open time.
+        Continuous Kline/candlestick.py bars for a pair. Klines are uniquely identified by their open time.
         """
         response = call_sync(self.request_impl.get_continuous_candlestick_data(pair, contractType, interval, startTime, endTime, limit))
         self.refresh_limits(response[1])
@@ -127,7 +127,7 @@ class RequestClient(object):
 
         GET /dapi/v1/klines
 
-        Kline/candlestick bars for a symbol. Klines are uniquely identified by their open time.
+        Kline/candlestick.py bars for a symbol. Klines are uniquely identified by their open time.
         """
         response = call_sync(self.request_impl.get_candlestick_data(symbol, interval, startTime, endTime, limit))
         self.refresh_limits(response[1])
@@ -140,7 +140,7 @@ class RequestClient(object):
 
         GET /dapi/v1/markPriceKlines
 
-        Mark price kline/candlestick bars for a symbol. Klines are uniquely identified by their open time.
+        Mark price kline/candlestick.py bars for a symbol. Klines are uniquely identified by their open time.
         """
         response = call_sync(self.request_impl.get_mark_price_candlestick_data(symbol, interval, startTime, endTime, limit))
         self.refresh_limits(response[1])
@@ -153,7 +153,7 @@ class RequestClient(object):
 
         GET /dapi/v1/indexPriceKlines
 
-        Index Kline/candlestick bars for a pair. Klines are uniquely identified by their open time.
+        Index Kline/candlestick.py bars for a pair. Klines are uniquely identified by their open time.
         """
         response = call_sync(self.request_impl.get_index_candlestick_data(pair, interval, startTime, endTime, limit))
         self.refresh_limits(response[1])
