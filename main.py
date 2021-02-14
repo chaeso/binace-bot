@@ -1,34 +1,3 @@
-# This is a sample Python script.
-
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
-from typing import Any
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
-
-class CandleStickData:
-    openTime: int
-    open: float
-    high: float
-    low: float
-    close: float
-    volumn: float
-    closeTime: int
-    qouteAssetVolume: float
-    numberOfTrades: int
-    takerBuyBaseAssetVolume: float
-    takerBuyQuoteAssetVolume: float
-
-    def __init__(self, obj: Any) -> None:
-        pass
-
-
-
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
     from binance_f import RequestClient
@@ -113,21 +82,6 @@ from backtesting import Strategy, Backtest
 from backtesting.lib import resample_apply
 import pandas as pd
 
-
-def SMA(array, n):
-    """Simple moving average"""
-    return pd.Series(array).rolling(n).mean()
-
-
-def RSI(array, n):
-    """Relative strength index"""
-    # Approximate; good enough
-    gain = pd.Series(array).diff()
-    loss = gain.copy()
-    gain[gain < 0] = 0
-    loss[loss > 0] = 0
-    rs = gain.ewm(n).mean() / loss.abs().ewm(n).mean()
-    return 100 - 100 / (1 + rs)
 class SmaCross(Strategy):
     def init(self):
         price = self.data.Close
@@ -199,48 +153,57 @@ def printCandle():
 if __name__ == '__main__':
     printCandle()
 
+class PriceCalculator:
 
-def cal_current_price_short(
-        buy_price: float,
-        current_price: float,
-        leverage: int,
-        commission_percent: float) -> float :
-    """숏 포지션을 했을 때, 현재 매도했을 때 자산의 가격을 계산한다..
+    def cal_current_price_short(
+            self,
+            buy_price: float,
+            current_price: float,
+            leverage: int,
+            commission_percent: float) -> float :
+        """숏 포지션을 했을 때, 현재 매도했을 때 자산의 가격을 계산한다..
 
-    Args:
-        buy_price: 구매했을 때 자산의 시세
-        current_price: 현재 자산의 시세
-        leverage: 1배~125배의 가격
-        commission_percent: 거래소에 지불하는 수수료
-    Returns:
-        현재 거래를 종료했을 때 자산의 가
+        Args:
+            buy_price: 구매했을 때 자산의 시세
+            current_price: 현재 자산의 시세
+            leverage: 1배~125배의 가격
+            commission_percent: 거래소에 지불하는 수수료
+        Returns:
+            현재 거래를 종료했을 때 자산의 가
+        """
+
+
+        liquidation_price: float = buy_price
+
+        pass
+
+    def cal_current_price_long(
+            self,
+            buy_price: float,
+            current_price: float,
+            leverage: int,
+            commission_percent: float) -> float :
+        """ 포지션을 했을 때, 현재 매도했을 때 자산의 가격을 계산한다.
+
+        Args:
+            buy_price: 구매했을 때 자산의 시세
+            current_price: 현재 자산의 시세
+            leverage: 1배~125배의 가격
+            commission_percent: 거래소에 지불하는 수수료
+        Returns:
+            현재 거래를 종료했을 때 자산의 가
+        """
+
+
+        liquidation_price: float = buy_price
+        pass
+
+class CandleCrawler:
     """
-
-
-    liquidation_price: float = buy_price
-
-    pass
-
-def cal_current_price_long(
-        buy_price: float,
-        current_price: float,
-        leverage: int,
-        commission_percent: float) -> float :
-    """ 포지션을 했을 때, 현재 매도했을 때 자산의 가격을 계산한다.
-
-    Args:
-        buy_price: 구매했을 때 자산의 시세
-        current_price: 현재 자산의 시세
-        leverage: 1배~125배의 가격
-        commission_percent: 거래소에 지불하는 수수료
-    Returns:
-        현재 거래를 종료했을 때 자산의 가
+        LIMIT 이 500까지밖에 안 되므로, 여러번 api를 콜하며 다량 캔들스틱을 가져온다.
     """
-
-
-    liquidation_price: float = buy_price
-    pass
-
+    def crawl_candlestick(self, limit: int):
+        pass
 class Trade:
     """
     현재 등록중인 거래
@@ -265,6 +228,22 @@ class Trade:
     def is_closed(self) -> bool:
         return False
 
+    """
+       지금 거래를 종료했을 경우, 현제 가격을 리턴한다.
+    """
+    def current_dollars(self, coin_price: float) -> float:
+        return 0
+
+
+class BackTestRecorder:
+
+
+    def draw_complete_trade(self, trade: Trade):
+        pass
+
+    def draw_candlesticks(self):
+        pass
+
 class BackTest:
     """
     백테스트 과정
@@ -272,6 +251,7 @@ class BackTest:
         initial_budget: 최초 투자 잔고
         chart: 캔들스틱
         current_trades: 현재 종료되지 않은 거래들
+        current_budget: float 현재 종료된 거래
     """
 
     initial_budget: float
@@ -280,8 +260,16 @@ class BackTest:
     current_trades: [Trade]
 
 
-    """
-    """
+    current_budget: float
+    def simulate(self):
+
+        turn_length: int = 0
+
+        for turn in range(0, turn_length):
+            self.clear_turn(turn)
+
+
+
     def clear_turn(self, turn: int):
         current_price = chart[turn]
         for trade in current_price:
@@ -289,7 +277,29 @@ class BackTest:
                 self.close_trade(trade)
 
         return
-                
+
+
+    def should_buy_long(self) -> bool:
+        """
+        롱 매수를 해야하는 지 판단
+        :return: 롱 매수를 해야 하는지 여부
+        """
+    def should_buy_short(self) -> bool:
+        """
+        숏 매수를 해야 하는 지 판단
+        :return: 숏 매수를 해야 하는지 여부
+        """
+
+    def should_sell_long(self) -> bool:
+        """
+        보유한 롱 계약을 끝내야 하는지 판단
+        :return:
+        """
+
+    def should_sell_short(self) -> bool:
+
+
+
 
 
     def close_trade(self, trade: Trade):
