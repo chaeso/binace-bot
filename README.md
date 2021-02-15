@@ -7,6 +7,14 @@ coin-targeting binance future trade bot.
 # in develop!
 
 
+# install
+1. 가상 환경 설정
+2. ta-lib 설치 https://mrjbq7.github.io/ta-lib/install.html
+~~~
+brew install ta-lib
+~~~
+3. pip install -r requirements.txt
+
 # Current Status
 
 ## candlecrawler.py
@@ -17,4 +25,7 @@ coin-targeting binance future trade bot.
 ## indicatorCalculator.py
 
 차트 값을 바탕으로 지표들을 계산한다.
-현재 계산 지표 : EMA, SMA, RSI
+현재 계산 지표 : EMA, SMA, RSI, TTM
+
+## graphdrawer.py
+데이터값을 바탕으로 그래프를 그린다.

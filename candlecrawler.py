@@ -56,6 +56,7 @@ class CandleCrawler:
         df['open'] = df['open'].astype(float)
         df['high'] = df['high'].astype(float)
         df['low'] = df['low'].astype(float)
+        df['volume'] = df['volume'].astype(float)
         return df
 
     def intervalToMilliSeoncds(self, interval: CandlestickInterval) -> int:
