@@ -10,19 +10,49 @@ class GraphDrawer:
     """
     _df: pd.DataFrame
 
-    def __init__(self, df: pd.DataFrame):
-        self._df = df
+    _indicatorBuilder: [BaseIndicatorBuilder]
 
-    def drawOHLCChart(self):
+    def __init__(self, df: pd.DataFrame, indicatorBuilder: [BaseIndicatorBuilder]):
+        self._df = df
+        self._indicatorBuilder = indicatorBuilder
+
+    def drawChart(self):
+
+        cols: int = 1
+        rows: int = 2
+        row_heights = [2, 1]
+        for builder in self._indicatorBuilder:
+            rows += builder.numberOfRows()
+            row_heights += ([1] * builder.numberOfRows())
+        fig = make_subplots(rows=rows, cols=cols, shared_xaxes=True,
+                            vertical_spacing=0.03, subplot_titles=('OHLC', 'Volume'),
+                            row_heights=row_heights)
+        self.drawOHLCChart(fig)
+
+        currentRow: int = 2
+
+        for builder in self._indicatorBuilder:
+            go = builder.draw_graph(df)
+            if builder.numberOfRows() == 0:
+                fig.add_trace(
+                    go,
+                    row=1, col=1
+                )
+            else:
+                currentRow += builder.numberOfRows()
+                fig.add_trace(
+                    go,
+                    row=currentRow, col=1
+                )
+
+        fig.update(layout_xaxis_rangeslider_visible=False)
+        fig.show()
+
+    def drawOHLCChart(self, fig):
         """
         ohlc 차트를 그린다.
         :return:
         """
-        # Create subplots and mention plot grid size
-        fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
-                            vertical_spacing=0.03, subplot_titles=('OHLC', 'Volume'),
-                            row_width=[0.2, 0.7])
-
         # Plot OHLC on 1st row
         fig.add_trace(
             go.Candlestick(x=df['openTime'], open=df["open"], high=df["high"],
@@ -33,15 +63,11 @@ class GraphDrawer:
         # Bar trace for volumes on 2nd row without legend
         fig.add_trace(go.Bar(x=df['openTime'], y=df['volume'], showlegend=False), row=2, col=1)
 
-        # Do not show OHLC's rangeslider plot
-        fig.update(layout_xaxis_rangeslider_visible=False)
-        fig.show()
 
 
 if __name__ == '__main__':
     crawler = CandleCrawler()
     df = crawler.load_data(crawler.data_save_path, refresh=True, page=1, limit=500, interval=CandlestickInterval.MIN1)
 
-    print(df)
-    graphDrawer = GraphDrawer(df)
-    graphDrawer.drawOHLCChart()
+    graphDrawer = GraphDrawer(df, crawler.indiecatorBuilder)
+    graphDrawer.drawChart()

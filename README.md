@@ -29,3 +29,4 @@ brew install ta-lib
 
 ## graphdrawer.py
 데이터값을 바탕으로 그래프를 그린다.
+![graph](./graph.png)

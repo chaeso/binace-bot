@@ -1,6 +1,7 @@
 from abc import *
 import pandas as pd
 import talib
+import plotly.graph_objects as go
 
 class BaseIndicatorBuilder(metaclass=ABCMeta):
     """
@@ -22,11 +23,26 @@ class BaseIndicatorBuilder(metaclass=ABCMeta):
     @abstractmethod
     def build_indicator(self, df: pd.DataFrame):
         """
-        데이터를 바탕으로 지표를 빌드하낟.
+        데이터를 바탕으로 지표를 빌드한다.
         :param df: 데티어
         :return: void
         """
         pass
+
+    @abstractmethod
+    def draw_graph(self, df: pd.DataFrame) -> go:
+        """
+        데이터를 그린다.
+        :param df: 데이터
+        :return: trace 추가할 오브젝트 리
+        """
+        pass
+    @abstractmethod
+    def numberOfRows(self) -> int:
+        """
+        그래프를 그릴 때 필요한 추가 rows를 반환한다.
+        :return:
+        """
 
 
 class RSIBuilder(BaseIndicatorBuilder):
@@ -43,6 +59,14 @@ class RSIBuilder(BaseIndicatorBuilder):
     def build_indicator(self, df: pd.DataFrame):
         close = df['close']
         df[self.name] = talib.RSI(close, self._days)
+
+    def numberOfRows(self) -> int:
+        return 1
+
+    def draw_graph(self, df: pd.DataFrame) -> go:
+        return go.Scatter(x=df['openTime'], y=df[self.name],
+                   mode='lines',
+                   name=self.name)
 
 class SMABuilder(BaseIndicatorBuilder):
     """
@@ -75,6 +99,14 @@ class EMABuilder(BaseIndicatorBuilder):
         close = df['close']
         df[self.name] = talib.EMA(close, self._days)
 
+    def numberOfRows(self) -> int:
+        return 0
+
+
+    def draw_graph(self, df: pd.DataFrame) -> go:
+        return go.Scatter(x=df['openTime'], y=df[self.name],
+                          mode='lines',
+                          name=self.name)
 
 class TTMSqueezeBuilder(BaseIndicatorBuilder):
     """
