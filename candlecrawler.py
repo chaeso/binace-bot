@@ -4,17 +4,15 @@ from binance_f.model import *
 from binance_f.constant.test import *
 from binance_f.base.printobject import *
 from binance_f.model.candlestickevent import Candlestick
-import pandas
 from datetime import datetime
-import talib
-import numpy as np
-
+from indicatorCalculator import *
 
 
 class CandleCrawler:
 
     data_save_path = "output.xlsx"
 
+    indiecatorBuilder: [BaseIndicatorBuilder]
     def saveToExcel(self, df: pd.DataFrame):
         """
             데이터를 저장한다.
@@ -31,21 +29,18 @@ class CandleCrawler:
         :param df:
         :return:
         """
-        df['sma5'] = talib.SMA(close, 5)
-        df['sma20'] = talib.SMA(close, 20)
-        df['sma120'] = talib.SMA(close, 120)
+        self.indiecatorBuilder = [
+            EMABuilder(12),
+            EMABuilder(26),
+            RSIBuilder(14),
+            SMABuilder(5),
+            SMABuilder(20),
+            SMABuilder(120)
+        ]
 
-        df['ema12'] = talib.EMA(close, 12)
-        df['ema26'] = talib.EMA(close, 26)
-        df['rsi14'] = talib.RSI(close, 14)
-
-        macd, macdsignal, macdhist = talib.MACD(close, 12, 26, 9)
-
-        df['macd'] = macd
-
-        printDataAsGraph(df.tail(90))
-        executeBacktest(df)
-        pass
+        for builder in self.indiecatorBuilder:
+            builder.build_indicator(df)
+        return df
 
 
     def convertDefaultData(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -133,6 +128,7 @@ class CandleCrawler:
                 df = pd.concat([currentPage, df], ignore_index=True)
             lastEndTime = df.loc[0]['openTime'] - self.intervalToMilliSeoncds(interval)
         df = self.convertDefaultData(df)
+        df = self.addIndicator(df)
         return df
 
     def validateData(
@@ -195,6 +191,6 @@ class CandleCrawler:
 
 if __name__ == '__main__':
     crawler = CandleCrawler()
-    df = crawler.load_data(crawler.data_save_path, refresh=False, page= 10, limit=500, interval=CandlestickInterval.MIN1)
+    df = crawler.load_data(crawler.data_save_path, refresh=True, page= 1, limit=500, interval=CandlestickInterval.MIN1)
 
     print(df)

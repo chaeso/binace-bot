@@ -37,7 +37,7 @@ class RSIBuilder(BaseIndicatorBuilder):
 
     def __init__(self, days: int):
         name: str = "RSI" + str(days)
-        super.__init__(self, name=name)
+        super().__init__(name=name)
         self._days = days
 
     def build_indicator(self, df: pd.DataFrame):
@@ -52,7 +52,7 @@ class SMABuilder(BaseIndicatorBuilder):
 
     def __init__(self, days: int):
         name: str = "SMA" + str(days)
-        super.__init__(self, name=name)
+        super().__init__(name=name)
         self._days = days
 
     def build_indicator(self, df: pd.DataFrame):
@@ -68,7 +68,7 @@ class EMABuilder(BaseIndicatorBuilder):
 
     def __init__(self, days: int):
         name: str = "EMA" + str(days)
-        super.__init__(self, name=name)
+        super().__init__(name=name)
         self._days = days
 
     def build_indicator(self, df: pd.DataFrame):
