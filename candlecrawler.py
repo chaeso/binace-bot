@@ -13,9 +13,15 @@ import numpy as np
 
 class CandleCrawler:
 
-    def saveToExcel(self, data: pd.DataFrame):
-        print(df)
-        df.to_excel("output.xlsx")
+    data_save_path = "output.xlsx"
+
+    def saveToExcel(self, df: pd.DataFrame):
+        """
+            데이터를 저장한다.
+        :param df: 저장할 데이터
+        :return: void
+        """
+        df.to_excel(self.data_save_path)
 
 
 
@@ -57,6 +63,11 @@ class CandleCrawler:
         return df
 
     def intervalToMilliSeoncds(self, interval: CandlestickInterval) -> int:
+        """
+        인터벌을 밀리세컨드로 바꾼다.
+        :param interval: 인터벌
+        :return: 밀리세컨
+        """
         if interval == CandlestickInterval.MIN1:
             return 60000
         if interval == CandlestickInterval.MIN3:
@@ -90,8 +101,11 @@ class CandleCrawler:
         return None
     def crawlCandle(self, endTime: int, limit: int, interval: CandlestickInterval) -> pd.DataFrame:
         """
-
-        :return: api 콜을 진행해서 값을 가져온다.
+        단일 페이지를 바이낸스에서 크롤링한다.
+        :param endTime: timestamp milli로 된 맨 마지막 시간
+        :param limit: 캔들 수
+        :param interval: 캔들간 간격
+        :return: 페이
         """
         request_client = RequestClient(api_key=g_api_key, secret_key=g_secret_key)
 
@@ -102,9 +116,14 @@ class CandleCrawler:
 
 
     def crawlWithMultiplePage(self, page: int, limit: int, interval: CandlestickInterval):
-
+        """
+        여러 페이지를 가지고 크롤링한다.
+        :param page: 가져올 페이지 수
+        :param limit: 한 페이지 당 리미트 값
+        :param interval: 캔들 봉 가격
+        :return: 크롤링한 페이지
+        """
         lastEndTime: int = None
-
         df = []
         for i in range(0, page):
             if lastEndTime is None:
@@ -116,8 +135,66 @@ class CandleCrawler:
         df = self.convertDefaultData(df)
         return df
 
+    def validateData(
+            self,
+            path: str,
+            page: int,
+            limit: int,
+            interval: CandlestickInterval
+    ) -> bool:
+        """
+        하드에 있는 데이터가 실제로 적합한지 판단한다.
+        :param path: 데이터 경로
+        :param limit: 페이지당 수
+        :param page: 페이지 수
+        :param interval: 봉 간격
+        :return: 적합한지 여부
+        """
+        df = pd.read_excel(path)
+        if df is None:
+            return False
+        expectedColumns: int = page * limit
+        if expectedColumns != len(df):
+            return False
+
+        expectedInterval: pd.Timedelta = pd.to_timedelta(self.intervalToMilliSeoncds(interval), unit="ms")
+        currentInterval: pd.Timedelta = df['openTime'][1] - df['openTime'][0]
+        if currentInterval != expectedInterval:
+            return False
+
+        return True
+
+    def load_data(
+            self,
+            path: str,
+            refresh: bool,
+            page: int,
+            limit: int,
+            interval: CandlestickInterval
+    ) -> pd.DataFrame:
+        """
+        내부 액셀에서 데이터를 가져오거나, 바이낸스에 api 요청을 해서 값을 가져온다.
+        :param path: 내부 데이터 저장 공간
+        :param refresh: refresh 인자가 True인 경우, 무조건 바이낸스에 새 값을 가져온다.
+        :param limit: 페이지당 캔들 수
+        :param page: 페이지 수
+        :param interval: 간격
+        :return: 데이터
+        """
+        if refresh:
+            df = self.crawlWithMultiplePage(page = page, limit = limit, interval = interval)
+            self.saveToExcel(df)
+            return df
+        if self.validateData(path, page= page, limit=limit, interval=interval):
+            return pd.read_excel(path)
+        else:
+            df = self.crawlWithMultiplePage(page=page, limit=limit, interval=interval)
+            self.saveToExcel(df)
+            return df
+
+
 if __name__ == '__main__':
     crawler = CandleCrawler()
-    df = crawler.crawlWithMultiplePage(2, 10, CandlestickInterval.MIN1)
+    df = crawler.load_data(crawler.data_save_path, refresh=False, page= 10, limit=500, interval=CandlestickInterval.MIN1)
+
     print(df)
-    crawler.saveToExcel(df)
