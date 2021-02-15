@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>candlecrawler.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  <div class='section'>
+    <div class='docs'><h1>candlecrawler.py</h1></div>
+  </div>
+  <div class='clearall'>
+  <div class='section' id='section-0'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-0'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">binance_f</span> <span class="kn">import</span> <span class="n">RequestClient</span>
+<span class="kn">from</span> <span class="nn">binance_f.model</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">binance_f.constant.test</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">binance_f.base.printobject</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">binance_f.model.candlestickevent</span> <span class="kn">import</span> <span class="n">Candlestick</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">talib</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-1'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-1'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">CandleCrawler</span><span class="p">:</span>
+
+    <span class="n">data_save_path</span> <span class="o">=</span> <span class="s2">&quot;output.xlsx&quot;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-2'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-2'>#</a>
+      </div>
+      <pre><code>데이터를 저장한다.
+</code></pre>
+<p>:param df: 저장할 데이터
+:return: void</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">saveToExcel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-3'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-3'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">df</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_save_path</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
+      <p>데이터에 지표들을 추가한다.
+:param df:
+:return:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">addIndicator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-5'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;sma5&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">talib</span><span class="o">.</span><span class="n">SMA</span><span class="p">(</span><span class="n">close</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;sma20&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">talib</span><span class="o">.</span><span class="n">SMA</span><span class="p">(</span><span class="n">close</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;sma120&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">talib</span><span class="o">.</span><span class="n">SMA</span><span class="p">(</span><span class="n">close</span><span class="p">,</span> <span class="mi">120</span><span class="p">)</span>
+
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;ema12&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">talib</span><span class="o">.</span><span class="n">EMA</span><span class="p">(</span><span class="n">close</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;ema26&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">talib</span><span class="o">.</span><span class="n">EMA</span><span class="p">(</span><span class="n">close</span><span class="p">,</span> <span class="mi">26</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;rsi14&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">talib</span><span class="o">.</span><span class="n">RSI</span><span class="p">(</span><span class="n">close</span><span class="p">,</span> <span class="mi">14</span><span class="p">)</span>
+
+        <span class="n">macd</span><span class="p">,</span> <span class="n">macdsignal</span><span class="p">,</span> <span class="n">macdhist</span> <span class="o">=</span> <span class="n">talib</span><span class="o">.</span><span class="n">MACD</span><span class="p">(</span><span class="n">close</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">26</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;macd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">macd</span>
+
+        <span class="n">printDataAsGraph</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="mi">90</span><span class="p">))</span>
+        <span class="n">executeBacktest</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="k">pass</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      <p>크롤링한 데이터의 형변환 등을 진행한다.
+:param df: 크롤링만 한 데이터
+:return: 변환한 데이터</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">convertDefaultData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;openTime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">x</span> <span class="o">//</span> <span class="mf">1000.0</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;openTime&#39;</span><span class="p">]]</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;closeTime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">x</span> <span class="o">//</span> <span class="mf">1000.0</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;closeTime&#39;</span><span class="p">]]</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;close&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;close&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;open&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;open&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;high&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;high&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;low&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;low&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">df</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-8'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-8'>#</a>
+      </div>
+      <p>인터벌을 밀리세컨드로 바꾼다.
+:param interval: 인터벌
+:return: 밀리세컨</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">intervalToMilliSeoncds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interval</span><span class="p">:</span> <span class="n">CandlestickInterval</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="n">CandlestickInterval</span><span class="o">.</span><span class="n">MIN1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">60000</span>
+        <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="n">CandlestickInterval</span><span class="o">.</span><span class="n">MIN3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">60000</span> <span class="o">*</span> <span class="mi">3</span>
+        <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="n">CandlestickInterval</span><span class="o">.</span><span class="n">MIN5</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">60000</span> <span class="o">*</span> <span class="mi">5</span>
+        <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="n">CandlestickInterval</span><span class="o">.</span><span class="n">MIN15</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">60000</span> <span class="o">*</span> <span class="mi">15</span>
+        <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="n">CandlestickInterval</span><span class="o">.</span><span class="n">MIN30</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">60000</span> <span class="o">*</span> <span class="mi">30</span>
+        <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="n">CandlestickInterval</span><span class="o">.</span><span class="n">HOUR1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">3600000</span>
+        <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="n">CandlestickInterval</span><span class="o">.</span><span class="n">HOUR2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">3600000</span> <span class="o">*</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="n">CandlestickInterval</span><span class="o">.</span><span class="n">HOUR4</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">3600000</span> <span class="o">*</span> <span class="mi">4</span>
+        <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="n">CandlestickInterval</span><span class="o">.</span><span class="n">HOUR6</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">3600000</span> <span class="o">*</span> <span class="mi">6</span>
+        <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="n">CandlestickInterval</span><span class="o">.</span><span class="n">HOUR8</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">3600000</span> <span class="o">*</span> <span class="mi">8</span>
+        <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="n">CandlestickInterval</span><span class="o">.</span><span class="n">HOUR12</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">3600000</span> <span class="o">*</span> <span class="mi">12</span>
+        <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="n">CandlestickInterval</span><span class="o">.</span><span class="n">DAY1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">3600000</span> <span class="o">*</span> <span class="mi">24</span>
+        <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="n">CandlestickInterval</span><span class="o">.</span><span class="n">DAY3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">3600000</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">3</span>
+        <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="n">CandlestickInterval</span><span class="o">.</span><span class="n">WEEK1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">3600000</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">7</span>
+        <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="n">CandlestickInterval</span><span class="o">.</span><span class="n">MON1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">3600000</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">30</span>
+        <span class="k">return</span> <span class="kc">None</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-10'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-10'>#</a>
+      </div>
+      <p>단일 페이지를 바이낸스에서 크롤링한다.
+:param endTime: timestamp milli로 된 맨 마지막 시간
+:param limit: 캔들 수
+:param interval: 캔들간 간격
+:return: 페이</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">crawlCandle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">endTime</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">interval</span><span class="p">:</span> <span class="n">CandlestickInterval</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-11'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-11'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">request_client</span> <span class="o">=</span> <span class="n">RequestClient</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">g_api_key</span><span class="p">,</span> <span class="n">secret_key</span><span class="o">=</span><span class="n">g_secret_key</span><span class="p">)</span>
+
+        <span class="n">result</span><span class="p">:</span> <span class="p">[</span><span class="n">Candlestick</span><span class="p">]</span> <span class="o">=</span> <span class="n">request_client</span><span class="o">.</span><span class="n">get_candlestick_data</span><span class="p">(</span><span class="n">symbol</span><span class="o">=</span><span class="s2">&quot;BTCUSDT&quot;</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="n">interval</span><span class="p">,</span>
+                                                                    <span class="n">startTime</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">endTime</span><span class="o">=</span><span class="n">endTime</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="nb">vars</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">result</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">df</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-12'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-12'>#</a>
+      </div>
+      <p>여러 페이지를 가지고 크롤링한다.
+:param page: 가져올 페이지 수
+:param limit: 한 페이지 당 리미트 값
+:param interval: 캔들 봉 가격
+:return: 크롤링한 페이지</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">crawlWithMultiplePage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">interval</span><span class="p">:</span> <span class="n">CandlestickInterval</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-13'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-13'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">lastEndTime</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">page</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">lastEndTime</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">crawlCandle</span><span class="p">(</span><span class="n">lastEndTime</span><span class="p">,</span> <span class="n">limit</span><span class="p">,</span> <span class="n">interval</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">currentPage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">crawlCandle</span><span class="p">(</span><span class="n">lastEndTime</span><span class="p">,</span> <span class="n">limit</span><span class="p">,</span> <span class="n">interval</span><span class="p">)</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">currentPage</span><span class="p">,</span> <span class="n">df</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">lastEndTime</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;openTime&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">intervalToMilliSeoncds</span><span class="p">(</span><span class="n">interval</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convertDefaultData</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">df</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-14'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-14'>#</a>
+      </div>
+      <p>하드에 있는 데이터가 실제로 적합한지 판단한다.
+:param path: 데이터 경로
+:param limit: 페이지당 수
+:param page: 페이지 수
+:param interval: 봉 간격
+:return: 적합한지 여부</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">validateData</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">page</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">interval</span><span class="p">:</span> <span class="n">CandlestickInterval</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-15'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-15'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">expectedColumns</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">page</span> <span class="o">*</span> <span class="n">limit</span>
+        <span class="k">if</span> <span class="n">expectedColumns</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">expectedInterval</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_timedelta</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intervalToMilliSeoncds</span><span class="p">(</span><span class="n">interval</span><span class="p">),</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;ms&quot;</span><span class="p">)</span>
+        <span class="n">currentInterval</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;openTime&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;openTime&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">currentInterval</span> <span class="o">!=</span> <span class="n">expectedInterval</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="kc">True</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-16'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-16'>#</a>
+      </div>
+      <p>내부 액셀에서 데이터를 가져오거나, 바이낸스에 api 요청을 해서 값을 가져온다.
+:param path: 내부 데이터 저장 공간
+:param refresh: refresh 인자가 True인 경우, 무조건 바이낸스에 새 값을 가져온다.
+:param limit: 페이지당 캔들 수
+:param page: 페이지 수
+:param interval: 간격
+:return: 데이터</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">load_data</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">refresh</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+            <span class="n">page</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">interval</span><span class="p">:</span> <span class="n">CandlestickInterval</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-17'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-17'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="n">refresh</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">crawlWithMultiplePage</span><span class="p">(</span><span class="n">page</span> <span class="o">=</span> <span class="n">page</span><span class="p">,</span> <span class="n">limit</span> <span class="o">=</span> <span class="n">limit</span><span class="p">,</span> <span class="n">interval</span> <span class="o">=</span> <span class="n">interval</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">saveToExcel</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">df</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validateData</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">page</span><span class="o">=</span> <span class="n">page</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="n">interval</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">crawlWithMultiplePage</span><span class="p">(</span><span class="n">page</span><span class="o">=</span><span class="n">page</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="n">interval</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">saveToExcel</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">df</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">crawler</span> <span class="o">=</span> <span class="n">CandleCrawler</span><span class="p">()</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">crawler</span><span class="o">.</span><span class="n">load_data</span><span class="p">(</span><span class="n">crawler</span><span class="o">.</span><span class="n">data_save_path</span><span class="p">,</span> <span class="n">refresh</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">page</span><span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="n">CandlestickInterval</span><span class="o">.</span><span class="n">MIN1</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+</pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+</div>
+</body>
