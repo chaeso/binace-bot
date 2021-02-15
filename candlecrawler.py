@@ -35,7 +35,8 @@ class CandleCrawler:
             RSIBuilder(14),
             SMABuilder(5),
             SMABuilder(20),
-            SMABuilder(120)
+            SMABuilder(120),
+            TTMSqueezeBuilder()
         ]
 
         for builder in self.indiecatorBuilder:

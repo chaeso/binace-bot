@@ -74,3 +74,35 @@ class EMABuilder(BaseIndicatorBuilder):
     def build_indicator(self, df: pd.DataFrame):
         close = df['close']
         df[self.name] = talib.EMA(close, self._days)
+
+
+class TTMSqueezeBuilder(BaseIndicatorBuilder):
+    """
+    TTM lazyBear Squeeze를 계산해 반환한다.
+    https://github.com/hackingthemarkets/ttm-squeeze/blob/master/squeeze.py
+    """
+
+    def __init__(self):
+        name: str = "TTM"
+        super().__init__(name=name)
+
+    def build_indicator(self, df: pd.DataFrame):
+        close = df['close']
+        df['20sma'] = close.rolling(window=20).mean()
+        df['stddev'] = close.rolling(window=20).std()
+        df['lower_band'] = df['20sma'] - (2 * df['stddev'])
+        df['upper_band'] = df['20sma'] + (2 * df['stddev'])
+
+        df['TR'] = abs(df['high'] - df['low'])
+        df['ATR'] = df['TR'].rolling(window=20).mean()
+
+        df['lower_keltner'] = df['20sma'] - (df['ATR'] * 1.5)
+        df['upper_keltner'] = df['20sma'] + (df['ATR'] * 1.5)
+
+        def in_squeeze(df):
+            return df['lower_band'] > df['lower_keltner'] and df['upper_band'] < df['upper_keltner']
+
+        df['squeeze_on'] = df.apply(in_squeeze, axis=1)
+
+        if df.iloc[-3]['squeeze_on'] and not df.iloc[-1]['squeeze_on']:
+            print("{} is coming out the squeeze".format(symbol))
