@@ -1,7 +1,7 @@
 import pandas as pd
 
 from dataclasses import dataclass
-
+from candlecrawler import *
 
 @dataclass
 class Trade:
@@ -84,14 +84,6 @@ class PriceCalculator:
         return current_price / buy_price * dollar_budget
 
 
-class CandleCrawler:
-    """
-        LIMIT 이 500까지밖에 안 되므로, 여러번 api를 콜하며 다량 캔들스틱을 가져온다.
-    """
-
-    def crawl_candlestick(self, limit: int):
-        pass
-
 
 class BackTestRecorder:
 
@@ -115,14 +107,19 @@ class BackTest:
     initial_budget: float
 
     chart: pd.DataFrame
-    current_trades: [Trade]
+    current_trades: [Trade] = []
 
     current_budget: float
+    priceCalculator: PriceCalculator = PriceCalculator()
+
+    def __init__(self, chart: pd.DataFrame, initial_budget: float):
+        self.initial_budget = initial_budget
+        self.current_budget = initial_budget
+        self.chart = chart
+
 
     def simulate(self):
-
-        turn_length: int = 0
-
+        turn_length: int = len(self.chart)
         for turn in range(0, turn_length):
             self.clear_turn(turn)
 
@@ -133,7 +130,7 @@ class BackTest:
         """
         # 지금 보유한 달러를 전량 코인으로 변환함
         buying_price_in_dollars: float = self.current_budget
-        current_coin_price: float = self.chart[turn]['open']
+        current_coin_price: float = self.chart['open'].loc[turn]
         trade: Trade = Trade(
             initial_dollars=buying_price_in_dollars,
             initial_coin_price=current_coin_price,
@@ -148,7 +145,7 @@ class BackTest:
     def buy_short(self, turn: int):
         # 지금 보유한 달러를 전량 코인으로 변환함
         buying_price_in_dollars: float = self.current_budget
-        current_coin_price: float = self.chart[turn]['open']
+        current_coin_price: float = self.chart['open'].loc[turn]
         trade: Trade = Trade(
             initial_dollars=buying_price_in_dollars,
             initial_coin_price=current_coin_price,
@@ -162,20 +159,57 @@ class BackTest:
 
 
     def sell_long(self, turn: int, tradeIndex: int):
-        pass
+        """
+         계약을 끝내고 전량 달러로 변환함
+        """
+        trade: Trade = self.current_trades[tradeIndex]
+        current_coin_price: float = self.chart['open'].loc[turn]
+        ## 현재 가격을 계산함
+        sold_dollars = self.priceCalculator.cal_current_price_long(
+            dollar_budget=trade.initial_dollars,
+            buy_price=trade.initial_coin_price,
+            current_price=current_coin_price
+        )
+        self.current_budget += sold_dollars
+        print(f'{trade.initial_dollars} 달러로 코인을 ${trade.initial_coin_price} 일 때 롱 계약 한 코인을 {current_coin_price} 가격에 팔아 {sold_dollars} 로 반환')
+        del self.current_trades[tradeIndex]
+
 
     def sell_short(self, turn: int, tradeIndex: int):
-        pass
+        """
+        계약을 끝내고 전량 달러로 변환함
+        :param turn: 현재 시점
+        :param tradeIndex: 청산할 거래 인덱스
+        :return:
+        """
+        trade: Trade = self.current_trades[tradeIndex]
+        current_coin_price: float = self.chart['open'].loc[turn]
+        ## 현재 가격을 계산함
+        sold_dollars = self.priceCalculator.cal_current_price_short(
+            dollar_budget=trade.initial_dollars,
+            buy_price=trade.initial_coin_price,
+            current_price=current_coin_price
+        )
+        self.current_budget += sold_dollars
+        print(
+            f'{trade.initial_dollars} 달러로 코인을 ${trade.initial_coin_price} 일 때 숏 계약 한 코인을 {current_coin_price} 가격에 팔아 {sold_dollars} 로 반환')
+        del self.current_trades[tradeIndex]
 
 
 
     def clear_turn(self, turn: int):
-        current_price = self.chart[turn]
-        for trade in current_price:
-            if trade.is_closed():
-                self.close_trade(trade)
+        if turn == 0:
+            self.buy_long(turn)
+        if turn == len(self.chart) -1:
+            self.sell_long(turn, 0)
 
-        return
+        pass
+        # current_price = self.chart[turn]
+        # for trade in current_price:
+        #     if trade.is_closed():
+        #         self.close_trade(trade)
+        #
+        # return
 
     def should_buy_long(self) -> bool:
         """
@@ -216,3 +250,8 @@ if __name__ == '__main__':
         buy_price=1000,
         current_price=1100
     ))
+    crawler = CandleCrawler()
+    df = crawler.load_data(crawler.data_save_path, refresh=True, page= 1, limit=500, interval=CandlestickInterval.MIN1)
+
+    backtest = BackTest(chart=df, initial_budget=10000)
+    backtest.simulate()
