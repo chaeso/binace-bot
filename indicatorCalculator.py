@@ -3,6 +3,16 @@ import pandas as pd
 import talib
 import plotly.graph_objects as go
 
+
+class GraphInfo:
+    graphData: go
+    attachToMainChart: bool
+
+    def __init__(self, grpahData: go, attachToMainChart: bool):
+        self.graphData = grpahData
+        self.attachToMainChart = attachToMainChart
+
+
 class BaseIndicatorBuilder(metaclass=ABCMeta):
     """
        지표들을 만드는 베이스 클래스.
@@ -30,13 +40,14 @@ class BaseIndicatorBuilder(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def draw_graph(self, df: pd.DataFrame) -> go:
+    def draw_graph(self, df: pd.DataFrame) -> [GraphInfo]:
         """
         데이터를 그린다.
         :param df: 데이터
         :return: trace 추가할 오브젝트 리
         """
         pass
+
     @abstractmethod
     def numberOfRows(self) -> int:
         """
@@ -63,10 +74,15 @@ class RSIBuilder(BaseIndicatorBuilder):
     def numberOfRows(self) -> int:
         return 1
 
-    def draw_graph(self, df: pd.DataFrame) -> go:
-        return go.Scatter(x=df['openTime'], y=df[self.name],
-                   mode='lines',
-                   name=self.name)
+    def draw_graph(self, df: pd.DataFrame) -> [GraphInfo]:
+        fig = go.Scatter(x=df['openTime'], y=df[self.name],
+                         mode='lines',
+                         name=self.name)
+        return [GraphInfo(
+            grpahData=fig,
+            attachToMainChart=False
+        )]
+
 
 class SMABuilder(BaseIndicatorBuilder):
     """
@@ -102,11 +118,15 @@ class EMABuilder(BaseIndicatorBuilder):
     def numberOfRows(self) -> int:
         return 0
 
+    def draw_graph(self, df: pd.DataFrame) -> [GraphInfo]:
+        fig = go.Scatter(x=df['openTime'], y=df[self.name],
+                         mode='lines',
+                         name=self.name)
+        return [GraphInfo(
+            grpahData=fig,
+            attachToMainChart=True
+        )]
 
-    def draw_graph(self, df: pd.DataFrame) -> go:
-        return go.Scatter(x=df['openTime'], y=df[self.name],
-                          mode='lines',
-                          name=self.name)
 
 class TTMSqueezeBuilder(BaseIndicatorBuilder):
     """
@@ -134,7 +154,37 @@ class TTMSqueezeBuilder(BaseIndicatorBuilder):
         def in_squeeze(df):
             return df['lower_band'] > df['lower_keltner'] and df['upper_band'] < df['upper_keltner']
 
+        def off_squeeze(df):
+            return df['lower_band'] < df['lower_keltner'] and df['upper_band'] > df['upper_keltner']
+
         df['squeeze_on'] = df.apply(in_squeeze, axis=1)
+
+        df['squeeze_off'] = df.apply(off_squeeze, axis=1)
+
+        # df['no_squeeze'] = (df['squeeze_on'] == False) and (df['squeeze_off'] == False)
 
         if df.iloc[-3]['squeeze_on'] and not df.iloc[-1]['squeeze_on']:
             print("{} is coming out the squeeze".format(symbol))
+        av = (df['high'].rolling(window=20).max() + df['low'].rolling(window=20).min()) / 2
+        minus = (av + df['20sma']) / 2
+        df['TTM'] = df['close'] - minus
+
+
+    def numberOfRows(self) -> int:
+        return 1
+
+    def draw_graph(self, df: pd.DataFrame) -> [GraphInfo]:
+        upper_band = go.Scatter(x=df['openTime'], y=df['upper_band'], name='Upper Bollinger Band',
+                                line={'color': 'red'})
+        lower_band = go.Scatter(x=df['openTime'], y=df['lower_band'], name='Lower Bollinger Band',
+                                line={'color': 'red'})
+
+        upper_keltner = go.Scatter(x=df['openTime'], y=df['upper_keltner'], name='Upper Keltner Channel',
+                                   line={'color': 'blue'})
+        lower_keltner = go.Scatter(x=df['openTime'], y=df['lower_keltner'], name='Lower Keltner Channel',
+                                   line={'color': 'blue'})
+        ttm = go.Scatter(x=df['openTime'], y=df['TTM'], name='TTM',
+                                   line={'color': 'blue'})
+        graphs = [upper_band, lower_band, upper_keltner, lower_keltner]
+        infos = list(map(lambda graph: GraphInfo(grpahData=graph, attachToMainChart=True), graphs))
+        return infos + [GraphInfo(grpahData=ttm, attachToMainChart=False)]

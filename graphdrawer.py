@@ -32,19 +32,19 @@ class GraphDrawer:
         currentRow: int = 2
 
         for builder in self._indicatorBuilder:
-            go = builder.draw_graph(df)
-            if builder.numberOfRows() == 0:
-                fig.add_trace(
-                    go,
-                    row=1, col=1
-                )
-            else:
-                currentRow += builder.numberOfRows()
-                fig.add_trace(
-                    go,
-                    row=currentRow, col=1
-                )
-
+            figures: [GraphInfo] = builder.draw_graph(df)
+            for figure in figures:
+                if figure.attachToMainChart:
+                    fig.add_trace(
+                        figure.graphData,
+                        row=1, col=1
+                    )
+                else:
+                    currentRow += 1
+                    fig.add_trace(
+                        figure.graphData,
+                        row=currentRow, col=1
+                    )
         fig.update(layout_xaxis_rangeslider_visible=False)
         fig.show()
 
