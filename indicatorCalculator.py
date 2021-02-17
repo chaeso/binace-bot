@@ -192,7 +192,7 @@ class TTMSqueezeBuilder(BaseIndicatorBuilder):
                          line={'color': 'blue'})
         squeeze_off = go.Scatter(x=df['openTime'], y=df['squeeze_off'], name='squeeze_off',
                              line={'color': 'red'})
-        return infos + [
+        return [
             GraphInfo(grpahData=ttm, attachToMainChart=False),
             GraphInfo(grpahData=squeeze, attachToMainChart=False),
             GraphInfo(grpahData=squeeze_off, attachToMainChart=False)

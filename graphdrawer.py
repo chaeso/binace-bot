@@ -21,11 +21,13 @@ class GraphDrawer:
         cols: int = 1
         rows: int = 2
         row_heights = [2, 1]
+        subplot_titles = ['OHLC', 'Volume']
         for builder in self._indicatorBuilder:
             rows += builder.numberOfRows()
             row_heights += ([1] * builder.numberOfRows())
+            subplot_titles += ([builder.name] * builder.numberOfRows())
         fig = make_subplots(rows=rows, cols=cols, shared_xaxes=True,
-                            vertical_spacing=0.03, subplot_titles=('OHLC', 'Volume'),
+                            vertical_spacing=0.03, subplot_titles=subplot_titles,
                             row_heights=row_heights)
         self.drawOHLCChart(fig)
 
@@ -45,6 +47,7 @@ class GraphDrawer:
                         figure.graphData,
                         row=currentRow, col=1
                     )
+
         fig.update(layout_xaxis_rangeslider_visible=False)
         fig.show()
 

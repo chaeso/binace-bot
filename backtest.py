@@ -100,7 +100,7 @@ class PriceCalculator:
         ## 홀드하고 있는 코인량 계산
         current_holding_coin: float = dollar_budget / buy_price
 
-        return (1 + (buy_price - current_price) / buy_price) * dollar_budget
+        return (1 + (buy_price - current_price) / buy_price) * dollar_budget * 0.9992
 
     def cal_current_price_long(
             self,
@@ -121,7 +121,7 @@ class PriceCalculator:
             현재 거래를 종료했을 때 자산의 가
         """
 
-        return current_price / buy_price * dollar_budget
+        return current_price / buy_price * dollar_budget * 0.99925
 
 
 class BackTest:
@@ -267,11 +267,22 @@ class BackTest:
         else:
             trade = self.current_trades[0]
             if trade.is_long:
-                if self.chart['TTM'].loc[turn] < 0:
-                    self.sell_long(turn=turn, tradeIndex=0)
+                current_coin_price: float = self.chart['open'].loc[turn]
+                ## 현재 가격을 계산함
+                sold_dollars = self.priceCalculator.cal_current_price_long(
+                    dollar_budget=trade.initial_dollars,
+                    buy_price=trade.initial_coin_price,
+                    current_price=current_coin_price
+                )
+                if (current_coin_price / trade.initial_coin_price > 1.001 or current_coin_price / trade.initial_coin_price < 0.999):
+                    if self.chart['TTM'].loc[turn] < 0:
+                        self.sell_long(turn=turn, tradeIndex=0)
             else:
-                if self.chart['TTM'].loc[turn] > 0:
-                    self.sell_short(turn=turn, tradeIndex=0)
+                current_coin_price: float = self.chart['open'].loc[turn]
+
+                if (current_coin_price / trade.initial_coin_price > 1.001 or current_coin_price / trade.initial_coin_price < 0.999):
+                    if self.chart['TTM'].loc[turn] > 0:
+                        self.sell_short(turn=turn, tradeIndex=0)
 
         #
         # if turn == 0:
@@ -358,15 +369,16 @@ if __name__ == '__main__':
         current_price=1100
     ))
     crawler = CandleCrawler()
-    df = crawler.load_data(crawler.data_save_path, refresh=False, page=10, limit=500, interval=CandlestickInterval.MIN1)
+    df = crawler.load_data(crawler.data_save_path, refresh=False, page=1, limit=500, interval=CandlestickInterval.MIN3)
 
     backtest = BackTest(chart=df, initial_budget=10000)
     backtest.simulate()
     tradeRecords = backtest.tradeRecords
-    from indicatorCalculator import TradesIndicatorBuilder, AssetIndicatorBuilder
+    from indicatorCalculator import TradesIndicatorBuilder, AssetIndicatorBuilder, TTMSqueezeBuilder
 
     from graphdrawer import GraphDrawer
     assetIndicatorBuilder = AssetIndicatorBuilder()
+    ttmSqueezeBuilder = TTMSqueezeBuilder()
     tradeIndicatorBuilder = TradesIndicatorBuilder(tradeRecords=tradeRecords)
-    graphDrawer = GraphDrawer(df=df, indicatorBuilder=[tradeIndicatorBuilder, assetIndicatorBuilder])
+    graphDrawer = GraphDrawer(df=df, indicatorBuilder=[tradeIndicatorBuilder, assetIndicatorBuilder, ttmSqueezeBuilder])
     graphDrawer.drawChart()

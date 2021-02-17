@@ -30,3 +30,8 @@ brew install ta-lib
 ## graphdrawer.py
 데이터값을 바탕으로 그래프를 그린다.
 ![graph](./graph.png)
+
+## backtest.py
+봇을 돌려보기 전에 알고리즘을 바탕으로
+대략적인 시뮬레이션을 진행한다.
+![backtest](./backtest.png)
