@@ -2,6 +2,7 @@ from abc import *
 import pandas as pd
 import talib
 import plotly.graph_objects as go
+from backtest import TradeRecord
 
 
 class GraphInfo:
@@ -169,7 +170,6 @@ class TTMSqueezeBuilder(BaseIndicatorBuilder):
         minus = (av + df['20sma']) / 2
         df['TTM'] = df['close'] - minus
 
-
     def numberOfRows(self) -> int:
         return 1
 
@@ -184,7 +184,70 @@ class TTMSqueezeBuilder(BaseIndicatorBuilder):
         lower_keltner = go.Scatter(x=df['openTime'], y=df['lower_keltner'], name='Lower Keltner Channel',
                                    line={'color': 'blue'})
         ttm = go.Scatter(x=df['openTime'], y=df['TTM'], name='TTM',
-                                   line={'color': 'blue'})
+                         line={'color': 'blue'})
         graphs = [upper_band, lower_band, upper_keltner, lower_keltner]
         infos = list(map(lambda graph: GraphInfo(grpahData=graph, attachToMainChart=True), graphs))
         return infos + [GraphInfo(grpahData=ttm, attachToMainChart=False)]
+
+
+class TradesIndicatorBuilder(BaseIndicatorBuilder):
+    tradeRecords: [TradeRecord]
+
+    def __init__(self, tradeRecords: [TradeRecord]):
+        self.tradeRecords = tradeRecords
+        name: str = "TRADES"
+        super().__init__(name=name)
+
+    def numberOfRows(self) -> int:
+        return 0
+
+    def build_indicator(self, df: pd.DataFrame):
+        return
+
+    def draw_graph(self, df: pd.DataFrame) -> [GraphInfo]:
+
+        graphInfos: [GraphInfo] = []
+        for tradeRecord in self.tradeRecords:
+            if tradeRecord.is_long:
+                graph = go.Scatter(
+                    x=[tradeRecord.buy_date, tradeRecord.sell_date],
+                    y=[tradeRecord.buy_coin_price, tradeRecord.sell_coin_price],
+                    name='trade',
+                    line={'color': 'red'}
+                )
+            else:
+                graph = go.Scatter(
+                    x=[tradeRecord.buy_date, tradeRecord.sell_date],
+                    y=[tradeRecord.buy_coin_price, tradeRecord.sell_coin_price],
+                    name='trade',
+                    line={'color': 'blue'}
+                )
+            graphInfo = GraphInfo(
+                grpahData=graph,
+                attachToMainChart=True
+            )
+            graphInfos.append(graphInfo)
+        return graphInfos
+
+
+
+class AssetIndicatorBuilder(BaseIndicatorBuilder):
+
+    def __init__(self):
+        name: str = "asset"
+        super().__init__(name=name)
+
+    def numberOfRows(self) -> int:
+        return 1
+
+    def build_indicator(self, df: pd.DataFrame):
+        return
+
+    def draw_graph(self, df: pd.DataFrame) -> [GraphInfo]:
+        fig = go.Scatter(x=df['openTime'], y=df[self.name],
+                         mode='lines',
+                         name=self.name)
+        return [GraphInfo(
+            grpahData=fig,
+            attachToMainChart=False
+        )]

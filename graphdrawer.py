@@ -32,7 +32,7 @@ class GraphDrawer:
         currentRow: int = 2
 
         for builder in self._indicatorBuilder:
-            figures: [GraphInfo] = builder.draw_graph(df)
+            figures: [GraphInfo] = builder.draw_graph(self._df)
             for figure in figures:
                 if figure.attachToMainChart:
                     fig.add_trace(
@@ -55,13 +55,13 @@ class GraphDrawer:
         """
         # Plot OHLC on 1st row
         fig.add_trace(
-            go.Candlestick(x=df['openTime'], open=df["open"], high=df["high"],
-                           low=df["low"], close=df["close"], name="OHLC"),
+            go.Candlestick(x=self._df['openTime'], open=self._df["open"], high=self._df["high"],
+                           low=self._df["low"], close=self._df["close"], name="OHLC"),
             row=1, col=1
         )
 
         # Bar trace for volumes on 2nd row without legend
-        fig.add_trace(go.Bar(x=df['openTime'], y=df['volume'], showlegend=False), row=2, col=1)
+        fig.add_trace(go.Bar(x=self._df['openTime'], y=self._df['volume'], showlegend=False), row=2, col=1)
 
 
 
