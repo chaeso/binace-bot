@@ -258,15 +258,31 @@ class BackTest:
         del self.current_trades[tradeIndex]
 
     def clear_turn(self, turn: int):
-        if turn == 0:
-            self.buy_long(turn)
-        if turn == 250:
-            self.sell_long(turn, 0)
-            self.buy_short(turn)
-        if turn == len(self.chart) - 1:
-            self.sell_short(turn, 0)
+        if len(self.current_trades) == 0:
+            if self.chart['squeeze_on'].loc[turn]:
+                if self.chart['TTM'].loc[turn] > 0:
+                    self.buy_long(turn)
+                else:
+                    self.buy_short(turn)
+        else:
+            trade = self.current_trades[0]
+            if trade.is_long:
+                if self.chart['TTM'].loc[turn] < 0:
+                    self.sell_long(turn=turn, tradeIndex=0)
+            else:
+                if self.chart['TTM'].loc[turn] > 0:
+                    self.sell_short(turn=turn, tradeIndex=0)
 
-        pass
+        #
+        # if turn == 0:
+        #     self.buy_long(turn)
+        # if turn == 250:
+        #     self.sell_long(turn, 0)
+        #     self.buy_short(turn)
+        # if turn == len(self.chart) - 1:
+        #     self.sell_short(turn, 0)
+        #
+        # pass
 
         # 자산 계산
         asset: float = self.calculate_current_assets(turn) + self.current_budget
@@ -342,7 +358,7 @@ if __name__ == '__main__':
         current_price=1100
     ))
     crawler = CandleCrawler()
-    df = crawler.load_data(crawler.data_save_path, refresh=True, page=1, limit=500, interval=CandlestickInterval.MIN1)
+    df = crawler.load_data(crawler.data_save_path, refresh=False, page=10, limit=500, interval=CandlestickInterval.MIN1)
 
     backtest = BackTest(chart=df, initial_budget=10000)
     backtest.simulate()

@@ -164,14 +164,14 @@ class TTMSqueezeBuilder(BaseIndicatorBuilder):
 
         # df['no_squeeze'] = (df['squeeze_on'] == False) and (df['squeeze_off'] == False)
 
-        if df.iloc[-3]['squeeze_on'] and not df.iloc[-1]['squeeze_on']:
-            print("{} is coming out the squeeze".format(symbol))
+        # if df.iloc[-3]['squeeze_on'] and not df.iloc[-1]['squeeze_on']:
+        #     print("{} is coming out the squeeze".format(symbol))
         av = (df['high'].rolling(window=20).max() + df['low'].rolling(window=20).min()) / 2
         minus = (av + df['20sma']) / 2
         df['TTM'] = df['close'] - minus
 
     def numberOfRows(self) -> int:
-        return 1
+        return 3
 
     def draw_graph(self, df: pd.DataFrame) -> [GraphInfo]:
         upper_band = go.Scatter(x=df['openTime'], y=df['upper_band'], name='Upper Bollinger Band',
@@ -187,7 +187,16 @@ class TTMSqueezeBuilder(BaseIndicatorBuilder):
                          line={'color': 'blue'})
         graphs = [upper_band, lower_band, upper_keltner, lower_keltner]
         infos = list(map(lambda graph: GraphInfo(grpahData=graph, attachToMainChart=True), graphs))
-        return infos + [GraphInfo(grpahData=ttm, attachToMainChart=False)]
+
+        squeeze = go.Scatter(x=df['openTime'], y=df['squeeze_on'], name='squeeze_on',
+                         line={'color': 'blue'})
+        squeeze_off = go.Scatter(x=df['openTime'], y=df['squeeze_off'], name='squeeze_off',
+                             line={'color': 'red'})
+        return infos + [
+            GraphInfo(grpahData=ttm, attachToMainChart=False),
+            GraphInfo(grpahData=squeeze, attachToMainChart=False),
+            GraphInfo(grpahData=squeeze_off, attachToMainChart=False)
+        ]
 
 
 class TradesIndicatorBuilder(BaseIndicatorBuilder):
@@ -212,14 +221,14 @@ class TradesIndicatorBuilder(BaseIndicatorBuilder):
                 graph = go.Scatter(
                     x=[tradeRecord.buy_date, tradeRecord.sell_date],
                     y=[tradeRecord.buy_coin_price, tradeRecord.sell_coin_price],
-                    name='trade',
+                    name='trade_long',
                     line={'color': 'red'}
                 )
             else:
                 graph = go.Scatter(
                     x=[tradeRecord.buy_date, tradeRecord.sell_date],
                     y=[tradeRecord.buy_coin_price, tradeRecord.sell_coin_price],
-                    name='trade',
+                    name='trade_short',
                     line={'color': 'blue'}
                 )
             graphInfo = GraphInfo(
