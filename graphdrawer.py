@@ -69,7 +69,7 @@ class GraphDrawer:
 
 
 if __name__ == '__main__':
-    crawler = CandleCrawler()
+    crawler = CandleCrawler(symbol="BTCUSDT")
     df = crawler.load_data(crawler.data_save_path, refresh=True, page=1, limit=500, interval=CandlestickInterval.MIN1)
 
     graphDrawer = GraphDrawer(df, crawler.indiecatorBuilder)

@@ -1,8 +1,8 @@
 import pandas as pd
-
 from dataclasses import dataclass
 from candlecrawler import *
-
+from indicatorCalculator import *
+from abc import *
 
 @dataclass
 class Trade:
@@ -259,51 +259,24 @@ class BackTest:
 
     def clear_turn(self, turn: int):
         if len(self.current_trades) == 0:
-            if self.chart['squeeze_on'].loc[turn]:
-                if self.chart['TTM'].loc[turn] > 0:
-                    self.buy_long(turn)
-                else:
-                    self.buy_short(turn)
+            if self.should_buy_long(turn):
+                self.buy_long(turn=turn)
+            elif self.should_buy_short(turn):
+                self.buy_short(turn=turn)
+
         else:
             trade = self.current_trades[0]
             if trade.is_long:
-                current_coin_price: float = self.chart['open'].loc[turn]
-                ## 현재 가격을 계산함
-                sold_dollars = self.priceCalculator.cal_current_price_long(
-                    dollar_budget=trade.initial_dollars,
-                    buy_price=trade.initial_coin_price,
-                    current_price=current_coin_price
-                )
-                if (current_coin_price / trade.initial_coin_price > 1.001 or current_coin_price / trade.initial_coin_price < 0.999):
-                    if self.chart['TTM'].loc[turn] < 0:
-                        self.sell_long(turn=turn, tradeIndex=0)
+                if self.should_sell_long(turn=turn):
+                    self.sell_long(turn=turn, tradeIndex=0)
             else:
-                current_coin_price: float = self.chart['open'].loc[turn]
-
-                if (current_coin_price / trade.initial_coin_price > 1.001 or current_coin_price / trade.initial_coin_price < 0.999):
-                    if self.chart['TTM'].loc[turn] > 0:
-                        self.sell_short(turn=turn, tradeIndex=0)
-
-        #
-        # if turn == 0:
-        #     self.buy_long(turn)
-        # if turn == 250:
-        #     self.sell_long(turn, 0)
-        #     self.buy_short(turn)
-        # if turn == len(self.chart) - 1:
-        #     self.sell_short(turn, 0)
-        #
-        # pass
+                if self.should_sell_short(turn=turn):
+                    self.sell_short(turn=turn, tradeIndex=0)
 
         # 자산 계산
         asset: float = self.calculate_current_assets(turn) + self.current_budget
         self.chart['asset'].loc[turn] = asset
-        # current_price = self.chart[turn]
-        # for trade in current_price:
-        #     if trade.is_closed():
-        #         self.close_trade(trade)
-        #
-        # return
+
 
 
     def calculate_current_assets(self, turn: int) -> float:
@@ -329,56 +302,68 @@ class BackTest:
                 )
         return assets
 
-    def should_buy_long(self) -> bool:
+    @abstractmethod
+    def should_buy_long(self, turn: int) -> bool:
         """
         롱 매수를 해야하는 지 판단
         :return: 롱 매수를 해야 하는지 여부
         """
+        pass
 
-    def should_buy_short(self) -> bool:
+    @abstractmethod
+    def should_buy_short(self, turn: int) -> bool:
         """
         숏 매수를 해야 하는 지 판단
         :return: 숏 매수를 해야 하는지 여부
         """
+        pass
 
-    def should_sell_long(self) -> bool:
+    @abstractmethod
+    def should_sell_long(self, turn: int) -> bool:
         """
         보유한 롱 계약을 끝내야 하는지 판단
         :return:
         """
-
-    def should_sell_short(self) -> bool:
         pass
 
-    def close_trade(self, trade: Trade):
+    @abstractmethod
+    def should_sell_short(self, turn: int) -> bool:
         pass
+
+
+class MACDBackTEST(BackTest):
+
+
+    def __init__(self, chart: pd.DataFrame, initial_budget: float, short: int, long: int, signal: int):
+        super().__init__(chart=chart, initial_budget=initial_budget)
+        self.indicator = MACDIndicatorBuilder(short, long, signal)
+        self.indicator.build_indicator(df=chart)
+
+    def should_buy_long(self, turn: int) -> bool:
+        return self.chart['macdsignal' + self.indicator.name].loc[turn] > 0
+
+    def should_buy_short(self, turn: int) -> bool:
+        return self.chart['macdsignal' + self.indicator.name].loc[turn] < 0
+
+    def should_sell_long(self, turn: int) -> bool:
+        return self.chart['macdsignal' + self.indicator.name].loc[turn]  < 0
+
+    def should_sell_short(self, turn: int) -> bool:
+        return self.chart['macdsignal' + self.indicator.name].loc[turn]  > 0
 
 
 if __name__ == '__main__':
-    priceCalulator = PriceCalculator()
 
-    print(priceCalulator.cal_current_price_short(
-        dollar_budget=1,
-        buy_price=1000,
-        current_price=900
-    ))
-
-    print(priceCalulator.cal_current_price_short(
-        dollar_budget=1,
-        buy_price=1000,
-        current_price=1100
-    ))
-    crawler = CandleCrawler()
+    crawler = CandleCrawler(symbol='BTCUSDT')
     df = crawler.load_data(crawler.data_save_path, refresh=False, page=1, limit=500, interval=CandlestickInterval.MIN3)
 
-    backtest = BackTest(chart=df, initial_budget=10000)
+    backtest = MACDBackTEST(chart=df, initial_budget=10000, short=15, long=70, signal=40)
     backtest.simulate()
     tradeRecords = backtest.tradeRecords
     from indicatorCalculator import TradesIndicatorBuilder, AssetIndicatorBuilder, TTMSqueezeBuilder
-
-    from graphdrawer import GraphDrawer
     assetIndicatorBuilder = AssetIndicatorBuilder()
-    ttmSqueezeBuilder = TTMSqueezeBuilder()
+
     tradeIndicatorBuilder = TradesIndicatorBuilder(tradeRecords=tradeRecords)
-    graphDrawer = GraphDrawer(df=df, indicatorBuilder=[tradeIndicatorBuilder, assetIndicatorBuilder, ttmSqueezeBuilder])
+    from graphdrawer import GraphDrawer
+    graphDrawer = GraphDrawer(df=df, indicatorBuilder=[backtest.indicator, tradeIndicatorBuilder, assetIndicatorBuilder])
     graphDrawer.drawChart()

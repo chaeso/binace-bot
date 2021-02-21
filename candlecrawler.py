@@ -13,6 +13,11 @@ class CandleCrawler:
     data_save_path = "output.xlsx"
 
     indiecatorBuilder: [BaseIndicatorBuilder]
+
+    symbol: str
+
+    def __init__(self, symbol: str):
+        self.symbol = symbol
     def saveToExcel(self, df: pd.DataFrame):
         """
             데이터를 저장한다.
@@ -36,7 +41,8 @@ class CandleCrawler:
             # SMABuilder(5),
             # SMABuilder(20),
             # SMABuilder(120),
-            TTMSqueezeBuilder()
+            TTMSqueezeBuilder(),
+            MACDIndicatorBuilder(20, 80, 40)
         ]
 
         for builder in self.indiecatorBuilder:
@@ -106,7 +112,7 @@ class CandleCrawler:
         """
         request_client = RequestClient(api_key=g_api_key, secret_key=g_secret_key)
 
-        result: [Candlestick] = request_client.get_candlestick_data(symbol="BTCUSDT", interval=interval,
+        result: [Candlestick] = request_client.get_candlestick_data(symbol=self.symbol, interval=interval,
                                                                     startTime=None, endTime=endTime, limit=limit)
         df = pd.DataFrame([vars(s) for s in result])
         return df
@@ -162,7 +168,7 @@ class CandleCrawler:
 
         return True
 
-    def load_data(
+    def  load_data(
             self,
             path: str,
             refresh: bool,
@@ -192,7 +198,7 @@ class CandleCrawler:
 
 
 if __name__ == '__main__':
-    crawler = CandleCrawler()
+    crawler = CandleCrawler(symbol='BTCUSDT')
     df = crawler.load_data(crawler.data_save_path, refresh=True, page= 1, limit=500, interval=CandlestickInterval.MIN1)
 
     print(df)

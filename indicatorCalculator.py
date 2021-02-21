@@ -189,9 +189,9 @@ class TTMSqueezeBuilder(BaseIndicatorBuilder):
         infos = list(map(lambda graph: GraphInfo(grpahData=graph, attachToMainChart=True), graphs))
 
         squeeze = go.Scatter(x=df['openTime'], y=df['squeeze_on'], name='squeeze_on',
-                         line={'color': 'blue'})
+                             line={'color': 'blue'})
         squeeze_off = go.Scatter(x=df['openTime'], y=df['squeeze_off'], name='squeeze_off',
-                             line={'color': 'red'})
+                                 line={'color': 'red'})
         return [
             GraphInfo(grpahData=ttm, attachToMainChart=False),
             GraphInfo(grpahData=squeeze, attachToMainChart=False),
@@ -239,7 +239,6 @@ class TradesIndicatorBuilder(BaseIndicatorBuilder):
         return graphInfos
 
 
-
 class AssetIndicatorBuilder(BaseIndicatorBuilder):
 
     def __init__(self):
@@ -260,3 +259,43 @@ class AssetIndicatorBuilder(BaseIndicatorBuilder):
             grpahData=fig,
             attachToMainChart=False
         )]
+
+
+class MACDIndicatorBuilder(BaseIndicatorBuilder):
+    """
+    MACD 지표를 계산한다.
+    """
+    _short: int
+    _long: int
+    _signal: int
+
+    def __init__(self, short: int, long: int, signal: int):
+        name: str = "MACD" + str(short) + '_' + str(long)
+        super().__init__(name=name)
+        self._short = short
+        self._long = long
+        self._signal = signal
+
+    def numberOfRows(self) -> int:
+        return 2
+
+    def build_indicator(self, df: pd.DataFrame):
+        macd, macdsignal, macdhist = talib.MACD(df['close'], self._short, self._long, )
+        df['macd' + self.name] = macd
+        df['macdsignal' + self.name] = macd
+        df['macdhist' + self.name] = macdhist
+
+    def draw_graph(self, df: pd.DataFrame) -> [GraphInfo]:
+        fig = go.Scatter(x=df['openTime'], y=df['macdhist' + self.name],
+                         mode='lines',
+                         name=self.name)
+        figsignal = go.Scatter(x=df['openTime'], y=df['macdsignal' + self.name],
+                               mode='lines',
+                               name=self.name)
+        return [GraphInfo(grpahData=fig,
+                          attachToMainChart=False),
+                GraphInfo(
+                    grpahData=figsignal,
+                    attachToMainChart=False
+                )
+                ]

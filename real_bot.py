@@ -8,6 +8,7 @@ from binance_f.model.exchangeinformation import Symbol
 import time
 import numpy as np
 from slack import SlackSender
+from candlecrawler import CandleCrawler
 class RealBot:
     """
     바이낸스에서 돌려가면서 계산을 한다.
@@ -40,12 +41,15 @@ class RealBot:
 
     slackSender: SlackSender = SlackSender()
 
+    candleCrawler: CandleCrawler
+
     def __init__(self, symbol: str, leverage: int):
         self.symbol = symbol
         self.leverage = leverage
         self.get_symbol_info()
         result = self.request_client.change_initial_leverage(symbol=self.symbol, leverage=self.leverage)
         print(result)
+        self.candleCrawler = CandleCrawler(symbol=symbol)
 
     def get_symbol_info(self):
         """
@@ -206,6 +210,22 @@ class RealBot:
                                                     quantity=-size, positionSide="BOTH", reduceOnly=True)
 
 
+
+    def executeBuyOrSell(self):
+
+        df = self.candleCrawler.load_data(crawler.data_save_path, refresh=True, page=1, limit=500, interval=CandlestickInterval.MIN1)
+
+        self.refreshCurrentBudget()
+        if self.positionAmt == 0:
+            # 중립 포지션
+            pass
+        elif self.positionAmt > 0:
+            # 롱 포지션
+            pass
+        else:
+            # 숏 포지션
+            pass
+
 if __name__ == '__main__':
 
     bot = RealBot(symbol="BTCUSDT", leverage=1)
@@ -216,4 +236,3 @@ if __name__ == '__main__':
         bot.refreshCurrentPrice()
         bot.refreshCurrentBudget()
         bot.slackSender.send_message(f'현재 가격 {bot.markPrice}, 잔고 {bot.availableBalance}')
-
