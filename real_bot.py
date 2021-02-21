@@ -5,7 +5,9 @@ from binance_f.model.accountinformationv2 import PositionV2
 from binance_f.model import OrderSide, OrderType
 from binance_f.base.printobject import *
 from binance_f.model.exchangeinformation import Symbol
+import time
 import numpy as np
+from slack import SlackSender
 class RealBot:
     """
     바이낸스에서 돌려가면서 계산을 한다.
@@ -35,6 +37,8 @@ class RealBot:
     """
     quantityPrecision = 0 일 경우 1, 2, 3... 같이 주문 가격 형성됨 
     """
+
+    slackSender: SlackSender = SlackSender()
 
     def __init__(self, symbol: str, leverage: int):
         self.symbol = symbol
@@ -201,14 +205,15 @@ class RealBot:
             result = self.request_client.post_order(symbol=self.symbol, side=OrderSide.BUY, ordertype=OrderType.MARKET,
                                                     quantity=-size, positionSide="BOTH", reduceOnly=True)
 
-    def notifyByTelegram(self):
-        """
-        텔레그램이나 슬랙으로 정보를 보낸다.
-        :return:
-        """
-        pass
 
 if __name__ == '__main__':
 
-    bot = RealBot(symbol="BTCUSDT", leverage=125)
-    bot.orderBuy()
+    bot = RealBot(symbol="BTCUSDT", leverage=1)
+
+    while True:
+
+        time.sleep(1)
+        bot.refreshCurrentPrice()
+        bot.refreshCurrentBudget()
+        bot.slackSender.send_message(f'현재 가격 {bot.markPrice}, 잔고 {bot.availableBalance}')
+
