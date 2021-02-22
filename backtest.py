@@ -355,9 +355,9 @@ class MACDBackTEST(BackTest):
 if __name__ == '__main__':
 
     crawler = CandleCrawler(symbol='BTCUSDT')
-    df = crawler.load_data(crawler.data_save_path, refresh=False, page=1, limit=500, interval=CandlestickInterval.MIN3)
+    df = crawler.load_data(crawler.data_save_path, refresh=False, page=10, limit=500, interval=CandlestickInterval.MIN3)
 
-    backtest = MACDBackTEST(chart=df, initial_budget=10000, short=15, long=70, signal=40)
+    backtest = MACDBackTEST(chart=df, initial_budget=10000, short=30, long=90, signal=60)
     backtest.simulate()
     tradeRecords = backtest.tradeRecords
     from indicatorCalculator import TradesIndicatorBuilder, AssetIndicatorBuilder, TTMSqueezeBuilder

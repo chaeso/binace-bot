@@ -259,3 +259,5 @@ binance_f/privateconfig.py
 *.xlsx
 
 slack_token.json
+
+config.py
