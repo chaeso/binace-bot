@@ -6,7 +6,7 @@ class OrderBookORM(Base):
     """
     주문창의 비드, 애스크를 ORM 형태로 저장한다.
     """
-    __tablename__ = "order_book"
+    __tablename__ = "order_book_v2"
 
     id = Column(Integer, primary_key=True)
     """

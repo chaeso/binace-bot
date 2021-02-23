@@ -50,21 +50,8 @@ def callback(data_type: 'SubscribeMessageType', event: 'any'):
     """
 
     if data_type == SubscribeMessageType.RESPONSE:
-        print("Event ID: ", event)
+        pass
     elif  data_type == SubscribeMessageType.PAYLOAD:
-        print("Event type: ", event.eventType)
-        print("Event time: ", event.eventTime)
-        print("transaction time: ", event.transactionTime)
-        print("Symbol: ", event.symbol)
-        print("first update Id from last stream: ", event.firstUpdateId)
-        print("last update Id from last stream: ", event.lastUpdateId)
-        print("last update Id in last stream: ", event.lastUpdateIdInlastStream)
-        print("=== Bids ===")
-        PrintMix.print_data(event.bids)
-        print("===================")
-        print("=== Asks ===")
-        PrintMix.print_data(event.asks)
-        print("===================")
         orm = convertToOrderORM(event)
         insertORM(orm)
        # sub_client.unsubscribe_all()
@@ -91,7 +78,7 @@ def execute():
 
 
     logger = logging.getLogger("binance-futures")
-    logger.setLevel(level=logging.INFO)
+    logger.setLevel(level=logging.CRITICAL)
     handler = logging.StreamHandler()
     handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
     logger.addHandler(handler)
